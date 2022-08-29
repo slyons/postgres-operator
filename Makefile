@@ -57,10 +57,17 @@ local: ${SOURCES}
 linux: ${SOURCES}
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=${CGO_ENABLED} go build -o build/linux/${BINARY} ${BUILD_FLAGS} -ldflags "$(LDFLAGS)" $^
 
+raspi: ${SOURCES}
+	GOOS=linux GOARCH=arm64 CGO_ENABLED=${CGO_ENABLED} go build -o build/linux/${BINARY} ${BUILD_FLAGS} -ldflags "$(LDFLAGS)" $^
+
 macos: ${SOURCES}
 	GOOS=darwin GOARCH=amd64 CGO_ENABLED=${CGO_ENABLED} go build -o build/macos/${BINARY} ${BUILD_FLAGS} -ldflags "$(LDFLAGS)" $^
 
 docker-context: scm-source.json linux
+	mkdir -p docker/build/
+	cp build/linux/${BINARY} scm-source.json docker/build/
+
+dockerpi-context: scm-source.json raspi
 	mkdir -p docker/build/
 	cp build/linux/${BINARY} scm-source.json docker/build/
 
@@ -71,6 +78,15 @@ docker: ${DOCKERDIR}/${DOCKERFILE} docker-context
 	echo "CDP tag ${CDP_TAG}"
 	echo "git describe $(shell git describe --tags --always --dirty)"
 	cd "${DOCKERDIR}" && docker build --rm -t "$(IMAGE):$(TAG)$(CDP_TAG)$(DEBUG_FRESH)$(DEBUG_POSTFIX)" -f "${DOCKERFILE}" .
+
+dockerpi: ${DOCKERDIR}/${DOCKERFILE} dockerpi-context
+	echo `(env)`
+	echo "Tag ${TAG}"
+	echo "Version ${VERSION}"
+	echo "CDP tag ${CDP_TAG}"
+	echo "git describe $(shell git describe --tags --always --dirty)"
+	IMAGE=slyons/postgres-operator
+	cd "${DOCKERDIR}" && docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 --push --rm -t "$(IMAGE):$(TAG)$(CDP_TAG)$(DEBUG_FRESH)$(DEBUG_POSTFIX)" -t "$(IMAGE):latest" -f "${DOCKERFILE}" .
 
 indocker-race:
 	docker run --rm -v "${GOPATH}":"${GOPATH}" -e GOPATH="${GOPATH}" -e RACE=1 -w ${PWD} golang:1.17.3 bash -c "make linux"
