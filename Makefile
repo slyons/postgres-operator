@@ -12,7 +12,7 @@ LOCAL_BUILD_FLAGS ?= $(BUILD_FLAGS)
 LDFLAGS ?= -X=main.version=$(VERSION)
 DOCKERDIR = docker
 
-IMAGE ?= registry.opensource.zalan.do/acid/$(BINARY)
+IMAGE ?= docker.io/slyons/$(BINARY)
 TAG ?= $(VERSION)
 GITHEAD = $(shell git rev-parse --short HEAD)
 GITURL = $(shell git config --get remote.origin.url)
@@ -85,7 +85,6 @@ dockerpi: ${DOCKERDIR}/${DOCKERFILE} dockerpi-context
 	echo "Version ${VERSION}"
 	echo "CDP tag ${CDP_TAG}"
 	echo "git describe $(shell git describe --tags --always --dirty)"
-	IMAGE=slyons/postgres-operator
 	cd "${DOCKERDIR}" && docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 --push --rm -t "$(IMAGE):$(TAG)$(CDP_TAG)$(DEBUG_FRESH)$(DEBUG_POSTFIX)" -t "$(IMAGE):latest" -f "${DOCKERFILE}" .
 
 indocker-race:
