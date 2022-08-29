@@ -206,8 +206,8 @@ type Config struct {
 	StorageResizeMode                      string            `name:"storage_resize_mode" default:"pvc"`
 	EnableLoadBalancer                     *bool             `name:"enable_load_balancer"` // deprecated and kept for backward compatibility
 	ExternalTrafficPolicy                  string            `name:"external_traffic_policy" default:"Cluster"`
-	MasterDNSNameFormat                    StringTemplate    `name:"master_dns_name_format" default:"{cluster}.{team}.{hostedzone}"`
-	ReplicaDNSNameFormat                   StringTemplate    `name:"replica_dns_name_format" default:"{cluster}-repl.{team}.{hostedzone}"`
+	MasterDNSNameFormat                    StringTemplate    `name:"master_dns_name_format" default:"{cluster}.{namespace}.{hostedzone}"`
+	ReplicaDNSNameFormat                   StringTemplate    `name:"replica_dns_name_format" default:"{cluster}-repl.{namespace}.{hostedzone}"`
 	PDBNameFormat                          StringTemplate    `name:"pdb_name_format" default:"postgres-{cluster}-pdb"`
 	EnablePodDisruptionBudget              *bool             `name:"enable_pod_disruption_budget" default:"true"`
 	EnableInitContainers                   *bool             `name:"enable_init_containers" default:"true"`
@@ -226,6 +226,7 @@ type Config struct {
 	EnableCrossNamespaceSecret             bool              `name:"enable_cross_namespace_secret" default:"false"`
 	EnablePgVersionEnvVar                  bool              `name:"enable_pgversion_env_var" default:"true"`
 	EnableSpiloWalPathCompat               bool              `name:"enable_spilo_wal_path_compat" default:"false"`
+	EnableTeamIdClusternamePrefix          bool              `name:"enable_team_id_clustername_prefix" default:"false"`
 	MajorVersionUpgradeMode                string            `name:"major_version_upgrade_mode" default:"off"`
 	MajorVersionUpgradeTeamAllowList       []string          `name:"major_version_upgrade_team_allow_list" default:""`
 	MinimalMajorVersion                    string            `name:"minimal_major_version" default:"9.6"`

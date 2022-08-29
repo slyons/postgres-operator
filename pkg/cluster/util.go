@@ -244,7 +244,12 @@ func getPostgresContainer(podSpec *v1.PodSpec) (pgContainer v1.Container) {
 func (c *Cluster) getTeamMembers(teamID string) ([]string, error) {
 
 	if teamID == "" {
-		return nil, fmt.Errorf("no teamId specified")
+		msg := "no teamId specified"
+		if c.OpConfig.EnableTeamIdClusternamePrefix {
+			return nil, fmt.Errorf(msg)
+		}
+		c.logger.Warnf(msg)
+		return nil, nil
 	}
 
 	members := []string{}
@@ -500,18 +505,48 @@ func (c *Cluster) roleLabelsSet(shouldAddExtraLabels bool, role PostgresRole) la
 	return lbls
 }
 
+func (c *Cluster) dnsName(role PostgresRole) string {
+	var dnsString string
+	if role == Master {
+		dnsString = c.masterDNSName()
+	} else {
+		dnsString = c.replicaDNSName()
+	}
+
+	// when cluster name starts with teamId prefix create an extra DNS entry
+	// to support the old format when prefix contraint was enabled (but is disabled now)
+	if !c.OpConfig.EnableTeamIdClusternamePrefix {
+		clusterNameWithoutTeamPrefix, _ := acidv1.ExtractClusterName(c.Name, c.Spec.TeamID)
+		if clusterNameWithoutTeamPrefix != "" {
+			if role == Replica {
+				clusterNameWithoutTeamPrefix = fmt.Sprintf("%s-repl", clusterNameWithoutTeamPrefix)
+			}
+			dnsString = fmt.Sprintf("%s,%s", dnsString, c.oldDNSFormat(clusterNameWithoutTeamPrefix))
+		}
+	}
+
+	return dnsString
+}
+
 func (c *Cluster) masterDNSName() string {
 	return strings.ToLower(c.OpConfig.MasterDNSNameFormat.Format(
 		"cluster", c.Spec.ClusterName,
-		"team", c.teamName(),
+		"namespace", c.Namespace,
 		"hostedzone", c.OpConfig.DbHostedZone))
 }
 
 func (c *Cluster) replicaDNSName() string {
 	return strings.ToLower(c.OpConfig.ReplicaDNSNameFormat.Format(
 		"cluster", c.Spec.ClusterName,
-		"team", c.teamName(),
+		"namespace", c.Namespace,
 		"hostedzone", c.OpConfig.DbHostedZone))
+}
+
+func (c *Cluster) oldDNSFormat(clusterName string) string {
+	return fmt.Sprintf("%s.%s.%s",
+		clusterName,
+		c.teamName(),
+		c.OpConfig.DbHostedZone)
 }
 
 func (c *Cluster) credentialSecretName(username string) string {

@@ -45,11 +45,12 @@ Make sure, the `spec` section of the manifest contains at least a `teamId`, the
 The minimum volume size to run the `postgresql` resource on Elastic Block
 Storage (EBS) is `1Gi`.
 
-Note, that the name of the cluster must start with the `teamId` and `-`. At
-Zalando we use team IDs (nicknames) to lower the chance of duplicate cluster
-names and colliding entities. The team ID would also be used to query an API to
-get all members of a team and create [database roles](#teams-api-roles) for
-them. Besides, the maximum cluster name length is 53 characters.
+Note, that when `enable_team_id_clustername_prefix` is set to `true` the name
+of the cluster must start with the `teamId` and `-`. At Zalando we use team IDs
+(nicknames) to lower chances of duplicate cluster names and colliding entities.
+The team ID would also be used to query an API to get all members of a team
+and create [database roles](#teams-api-roles) for them. Besides, the maximum
+cluster name length is 53 characters.
 
 ## Watch pods being created
 
@@ -151,7 +152,7 @@ specified explicitly.
 
 The operator automatically generates a password for each manifest role and
 places it in the secret named
-`{username}.{team}-{clustername}.credentials.postgresql.acid.zalan.do` in the
+`{username}.{clustername}.credentials.postgresql.acid.zalan.do` in the
 same namespace as the cluster. This way, the application running in the
 K8s cluster and connecting to Postgres can obtain the password right from the
 secret, without ever sharing it outside of the cluster.
@@ -181,7 +182,7 @@ be in the form of `namespace.username`.
 
 For such usernames, the secret is created in the given namespace and its name is
 of the following form,
-`{namespace}.{username}.{team}-{clustername}.credentials.postgresql.acid.zalan.do`
+`{namespace}.{username}.{clustername}.credentials.postgresql.acid.zalan.do`
 
 ### Infrastructure roles
 
@@ -222,7 +223,7 @@ the user name, password etc. The secret itself is referenced by the
 above list them separately.
 
 ```yaml
-apiVersion: v1
+apiVersion: "acid.zalan.do/v1"
 kind: OperatorConfiguration
 metadata:
   name: postgresql-operator-configuration

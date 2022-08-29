@@ -92,6 +92,11 @@ Those are top-level keys, containing both leaf keys and groups.
 * **enable_spilo_wal_path_compat**
   enables backwards compatible path between Spilo 12 and Spilo 13+ images. The default is `false`.
 
+* **enable_team_id_clustername_prefix**
+  To lower the risk of name clashes between clusters of different teams you
+  can turn on this flag and the operator will sync only clusters where the
+  name starts with the `teamId` (from `spec`) plus `-`. Default is `false`.
+
 * **etcd_host**
   Etcd connection string for Patroni defined as `host:port`. Not required when
   Patroni native Kubernetes support is used. The default is empty (use
@@ -612,15 +617,15 @@ In the CRD-based configuration they are grouped under the `load_balancer` key.
 
 * **master_dns_name_format** defines the DNS name string template for the
   master load balancer cluster.  The default is
-  `{cluster}.{team}.{hostedzone}`, where `{cluster}` is replaced by the cluster
-  name, `{team}` is replaced with the team name and `{hostedzone}` is replaced
+  `{cluster}.{namespace}.{hostedzone}`, where `{cluster}` is replaced by the cluster
+  name, `{namespace}` is replaced with the namespace and `{hostedzone}` is replaced
   with the hosted zone (the value of the `db_hosted_zone` parameter). No other
   placeholders are allowed.
 
 * **replica_dns_name_format** defines the DNS name string template for the
   replica load balancer cluster.  The default is
-  `{cluster}-repl.{team}.{hostedzone}`, where `{cluster}` is replaced by the
-  cluster name, `{team}` is replaced with the team name and `{hostedzone}` is
+  `{cluster}-repl.{namespace}.{hostedzone}`, where `{cluster}` is replaced by the
+  cluster name, `{namespace}` is replaced with the namespace and `{hostedzone}` is
   replaced with the hosted zone (the value of the `db_hosted_zone` parameter).
   No other placeholders are allowed.
 

@@ -80,7 +80,7 @@ func (c *Cluster) statefulSetName() string {
 func (c *Cluster) endpointName(role PostgresRole) string {
 	name := c.Name
 	if role == Replica {
-		name = name + "-repl"
+		name = fmt.Sprintf("%s-%s", name, "repl")
 	}
 
 	return name
@@ -89,7 +89,7 @@ func (c *Cluster) endpointName(role PostgresRole) string {
 func (c *Cluster) serviceName(role PostgresRole) string {
 	name := c.Name
 	if role == Replica {
-		name = name + "-repl"
+		name = fmt.Sprintf("%s-%s", name, "repl")
 	}
 
 	return name
@@ -102,8 +102,9 @@ func (c *Cluster) serviceAddress(role PostgresRole) string {
 		return service.ObjectMeta.Name
 	}
 
-	c.logger.Warningf("No service for role %s", role)
-	return ""
+	defaultAddress := c.serviceName(role)
+	c.logger.Warningf("No service for role %s - defaulting to %s", role, defaultAddress)
+	return defaultAddress
 }
 
 func (c *Cluster) servicePort(role PostgresRole) int32 {
@@ -1813,12 +1814,7 @@ func (c *Cluster) generateServiceAnnotations(role PostgresRole, spec *acidv1.Pos
 	}
 
 	if c.shouldCreateLoadBalancerForService(role, spec) {
-		var dnsName string
-		if role == Master {
-			dnsName = c.masterDNSName()
-		} else {
-			dnsName = c.replicaDNSName()
-		}
+		dnsName := c.dnsName(role)
 
 		// Just set ELB Timeout annotation with default value, if it does not
 		// have a cutom value
@@ -2237,7 +2233,7 @@ func (c *Cluster) generateLogicalBackupPodEnvVars() []v1.EnvVar {
 
 // getLogicalBackupJobName returns the name; the job itself may not exists
 func (c *Cluster) getLogicalBackupJobName() (jobName string) {
-	return trimCronjobName(c.OpConfig.LogicalBackupJobPrefix + c.clusterName().Name)
+	return trimCronjobName(fmt.Sprintf("%s%s", c.OpConfig.LogicalBackupJobPrefix, c.clusterName().Name))
 }
 
 // Return an array of ownerReferences to make an arbitraty object dependent on

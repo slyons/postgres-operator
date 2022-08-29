@@ -86,6 +86,9 @@ spec:
               enable_spilo_wal_path_compat:
                 type: boolean
                 default: false
+              enable_team_id_clustername_prefix:
+                type: boolean
+                default: false
               etcd_host:
                 type: string
                 default: ""
@@ -419,10 +422,10 @@ spec:
                     default: "Cluster"
                   master_dns_name_format:
                     type: string
-                    default: "{cluster}.{team}.{hostedzone}"
+                    default: "{cluster}.{namespace}.{hostedzone}"
                   replica_dns_name_format:
                     type: string
-                    default: "{cluster}-repl.{team}.{hostedzone}"
+                    default: "{cluster}-repl.{namespace}.{hostedzone}"
               aws_or_gcp:
                 type: object
                 properties:
@@ -595,7 +598,7 @@ spec:
                     default: "pooler"
                   connection_pooler_image:
                     type: string
-                    default: "registry.opensource.zalan.do/acid/pgbouncer:master-22"
+                    default: "registry.opensource.zalan.do/acid/pgbouncer:master-24"
                   connection_pooler_max_db_connections:
                     type: integer
                     default: 60
